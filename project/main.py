@@ -2,6 +2,7 @@ import requests
 import sys
 import tweepy
 import urllib
+import webbrowser
 
 class TwitterAPI():
 
@@ -37,12 +38,15 @@ def main():
 	url = pocket.redirect_uri
 	payload = {'redirect_uri': url, 'consumer_key': consumer_key}
 	r = requests.post('https://getpocket.com/v3/oauth/request', json=payload)
-	
+	print(r.text)
+	pocket.request_token = r.text
 
-	redirect_url = "https://getpocket.com/auth/authorize?"
-	request_payload = {'request_token': }
-	urllib.urlencode(redirect_url, )
-	webbrowser.open_new(redirect_url)
+
+	query = "https://getpocket.com/auth/authorize?"
+	request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
+	query = query + urllib.urlencode(request_payload)	
+	print(query)
+	webbrowser.open_new(query)
 
 if __name__ == '__main__':
     sys.exit(main())
