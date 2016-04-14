@@ -1,5 +1,6 @@
 import requests
 import sys
+import time
 import tweepy
 import urllib
 import webbrowser
@@ -22,6 +23,8 @@ class TwitterAPI():
 
 class PocketAPI():
 
+	request_url = "https://getpocket.com/v3/oauth/request"
+	authorize_url = "https://getpocket.com/v3/oauth/authorize"
 	def __init__(self): 
 		self.consumer_key = "53266-0352132bef521461e927c48e"
 		self.request_token = ""
@@ -37,16 +40,26 @@ def main():
 	consumer_key = pocket.consumer_key
 	url = pocket.redirect_uri
 	payload = {'redirect_uri': url, 'consumer_key': consumer_key}
-	r = requests.post('https://getpocket.com/v3/oauth/request', json=payload)
-	print(r.text)
-	pocket.request_token = r.text
+	r = requests.post(PocketAPI.request_url, json=payload)
+	pocket.request_token = r.text.split("=")[1]
+	print(pocket.request_token)
 
 
-	query = "https://getpocket.com/auth/authorize?"
-	request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
-	query = query + urllib.urlencode(request_payload)	
-	print(query)
-	webbrowser.open_new(query)
+	# query = "https://getpocket.com/auth/authorize?"
+	# request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
+	# query = query + urllib.urlencode(request_payload)	
+	# webbrowser.open_new(query)
+
+	time.sleep(5)
+	r1 = requests.post(PocketAPI.authorize_url, json={'consumer_key': pocket.consumer_key, 
+		'code': pocket.request_token})
+	pocket.access_token = r1.text.split('&')[0].split('=')[1]
+
+
+	# Get list 
+	pocket_list = requests.post("https://getpocket.com/v3/get", data={'consumer_key': pocket.consumer_key, 
+		'access_token': pocket.access_token, 'count': 5, 'detailType': "simple"})
+	print(pocket_list.json())
 
 if __name__ == '__main__':
     sys.exit(main())
