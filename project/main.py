@@ -26,7 +26,7 @@ class PocketAPI():
 	request_url = "https://getpocket.com/v3/oauth/request"
 	authorize_url = "https://getpocket.com/v3/oauth/authorize"
 	def __init__(self): 
-		self.consumer_key = "53266-0352132bef521461e927c48e"
+		self.consumer_key = "53266-0352132bef521461e927c48e"	# Change per account 
 		self.request_token = ""
 		self.access_token = ""
 		self.redirect_uri = "https://www.google.com"
@@ -45,21 +45,25 @@ def main():
 	print(pocket.request_token)
 
 
-	# query = "https://getpocket.com/auth/authorize?"
-	# request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
-	# query = query + urllib.urlencode(request_payload)	
-	# webbrowser.open_new(query)
+	query = "https://getpocket.com/auth/authorize?"
+	request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
+	query = query + urllib.urlencode(request_payload)	
+	webbrowser.open_new(query)
 
 	time.sleep(5)
 	r1 = requests.post(PocketAPI.authorize_url, json={'consumer_key': pocket.consumer_key, 
 		'code': pocket.request_token})
+	print(r1.text)
 	pocket.access_token = r1.text.split('&')[0].split('=')[1]
 
 
 	# Get list 
 	pocket_list = requests.post("https://getpocket.com/v3/get", data={'consumer_key': pocket.consumer_key, 
-		'access_token': pocket.access_token, 'count': 5, 'detailType': "simple"})
-	print(pocket_list.json())
+		'access_token': pocket.access_token, 'count': 1, 'detailType': "simple"})
+	js_pocket_list = pocket_list.json()
+	print(js_pocket_list['list'])
+	# TODO: figure out how to parse the dict
+
 
 if __name__ == '__main__':
     sys.exit(main())
