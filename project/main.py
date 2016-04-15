@@ -30,7 +30,8 @@ class PocketAPI():
 		self.request_token = ""
 		self.access_token = ""
 		self.redirect_uri = "https://www.google.com"
-		
+	
+	#def fetch_links()
 
 def main(): 
 	print "Hello world"
@@ -59,10 +60,13 @@ def main():
 
 	# Get list 
 	pocket_list = requests.post("https://getpocket.com/v3/get", data={'consumer_key': pocket.consumer_key, 
-		'access_token': pocket.access_token, 'count': 1, 'detailType': "simple"})
-	js_pocket_list = pocket_list.json()
-	print(js_pocket_list['list'])
-	# TODO: figure out how to parse the dict
+		'access_token': pocket.access_token, 'count': 5, 'detailType': "simple"})
+	js_pocket_list = pocket_list.json() #dict
+	for x in js_pocket_list['list'].itervalues(): 
+		if ('given_url' in x): 
+			print x['given_url']
+
+	
 
 
 if __name__ == '__main__':
