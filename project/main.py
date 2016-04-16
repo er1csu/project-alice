@@ -8,7 +8,6 @@ import webbrowser
 class TwitterAPI():
 
 	def __init__(self): 
-		print "Hello"
 		consumer_key = "97GYp45AVZHBbLO2Ku80FKSoI"
 		consumer_secret = "GUOrCYJCE1WosX3hlB1VdNkzGrBoks1Dzz824Zk8DZega3whMf"
 		auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -23,49 +22,51 @@ class TwitterAPI():
 
 class PocketAPI():
 
-	request_url = "https://getpocket.com/v3/oauth/request"
-	authorize_url = "https://getpocket.com/v3/oauth/authorize"
+	s_request_url = "https://getpocket.com/v3/oauth/request"
+	s_authorize_url = "https://getpocket.com/v3/oauth/authorize"
+	s_request_authorization_url = "https://getpocket.com/auth/authorize?"
+	s_get_url = "https://getpocket.com/v3/get"
+
 	def __init__(self): 
 		self.consumer_key = "53266-0352132bef521461e927c48e"	# Change per account 
 		self.request_token = ""
 		self.access_token = ""
 		self.redirect_uri = "https://www.google.com"
+		self.links = []
 	
-	#def fetch_links()
+	def fetch_new_links(self): 
+		pocket_list = requests.post(PocketAPI.s_get_url, data={'consumer_key': self.consumer_key, 
+			'access_token': self.access_token, 'count': 5, 'detailType': "simple"})
+		js_pocket_list = pocket_list.json() #dict
+		for x in js_pocket_list['list'].itervalues(): 
+			if ('given_url' in x): 
+				self.links.append(x['given_url'])
+
+	def initialize_pocket(self): 
+		url = self.redirect_uri
+		payload = {'redirect_uri': url, 'consumer_key': self.consumer_key}
+		r = requests.post(PocketAPI.s_request_url, json=payload)
+		self.request_token = r.text.split("=")[1]
+
+		request_payload = {'request_token': self.request_token, 'redirect_uri': self.redirect_uri}
+		query = PocketAPI.s_request_authorization_url + urllib.urlencode(request_payload)	
+		webbrowser.open_new(query)
+
+		time.sleep(5)
+		r1 = requests.post(PocketAPI.s_authorize_url, json={'consumer_key': self.consumer_key, 
+			'code': self.request_token})
+		self.access_token = r1.text.split('&')[0].split('=')[1]
+
+
 
 def main(): 
-	print "Hello world"
 	twitter = TwitterAPI()
 	pocket = PocketAPI()
-
-	consumer_key = pocket.consumer_key
-	url = pocket.redirect_uri
-	payload = {'redirect_uri': url, 'consumer_key': consumer_key}
-	r = requests.post(PocketAPI.request_url, json=payload)
-	pocket.request_token = r.text.split("=")[1]
-	print(pocket.request_token)
-
-
-	query = "https://getpocket.com/auth/authorize?"
-	request_payload = {'request_token': pocket.request_token, 'redirect_uri': pocket.redirect_uri}
-	query = query + urllib.urlencode(request_payload)	
-	webbrowser.open_new(query)
-
-	time.sleep(5)
-	r1 = requests.post(PocketAPI.authorize_url, json={'consumer_key': pocket.consumer_key, 
-		'code': pocket.request_token})
-	print(r1.text)
-	pocket.access_token = r1.text.split('&')[0].split('=')[1]
-
+	pocket.initialize_pocket()
+	
 
 	# Get list 
-	pocket_list = requests.post("https://getpocket.com/v3/get", data={'consumer_key': pocket.consumer_key, 
-		'access_token': pocket.access_token, 'count': 5, 'detailType': "simple"})
-	js_pocket_list = pocket_list.json() #dict
-	for x in js_pocket_list['list'].itervalues(): 
-		if ('given_url' in x): 
-			print x['given_url']
-
+	pocket.fetch_new_links()
 	
 
 
